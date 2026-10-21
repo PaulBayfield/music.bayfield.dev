@@ -1,0 +1,29 @@
+{
+  "name": "music-server",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Music API (YourSpotify-compatible), the Spotify poller and static host for the web build",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env src/index.ts",
+    "dev": "node --watch --env-file-if-exists=.env src/index.ts",
+    "check": "tsc --noEmit",
+    "migrate:yourspotify": "node --env-file-if-exists=.env src/migrate-yourspotify.ts",
+    "db:dev": "node scripts/dev-db.ts",
+    "seed": "node --env-file-if-exists=.env scripts/seed.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.5",
+    "hono": "^4.13.13",
+    "mongodb": "^7.3.0",
+    "postgres": "^3.4.9"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "embedded-postgres": "^18.4.0-beta.17",
+    "typescript": "~7.0.2"
+  }
+}
