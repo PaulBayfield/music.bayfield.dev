@@ -6,7 +6,7 @@ import { MOBILE_QUERY, invalidate, useApi, useMediaQuery } from "./lib/hooks";
 import { rangeInstants, shiftRange } from "./lib/range";
 import { useRouter } from "./lib/router";
 import { SettingsProvider, useSettings } from "./lib/settings";
-import { ToastProvider, useToast } from "./components/common";
+import { ErrorBoundary, ToastProvider, useToast } from "./components/common";
 import { Sidebar } from "./components/Sidebar";
 import { SignIn } from "./components/SignIn";
 import { Dashboard } from "./components/Dashboard";
@@ -211,6 +211,7 @@ function Shell({ me, reloadMe, onSignedOut }: { me: Me; reloadMe: () => void; on
             </div>
           )}
           {guest && <div className="banner">{t("publicViewBanner", { name: me.username })}</div>}
+          <ErrorBoundary key={JSON.stringify(r)} message={t("pageFailed")} retry={t("retry")}>
           {r.name === "tracks" || r.name === "artists" || r.name === "albums" ? (
             <TopPage kind={r.name} key={r.name} />
           ) : r.name === "artist" ? (
@@ -230,6 +231,7 @@ function Shell({ me, reloadMe, onSignedOut }: { me: Me; reloadMe: () => void; on
           ) : (
             <Dashboard />
           )}
+          </ErrorBoundary>
           <TabBar />
         </main>
         {panelVisible && (

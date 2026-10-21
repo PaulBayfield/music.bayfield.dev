@@ -185,8 +185,8 @@ export function AllStats() {
                 <LineChart
                   label={t("averageFeats")}
                   points={points(feats.data, (r) => r.average, null)}
-                  format={(v) => t("artistsPerTrackN", { n: v.toFixed(2) })}
-                  tick={(v) => v.toFixed(2)}
+                  format={(v) => t("artistsPerTrackN", { n: f.number(Math.round(v * 100) / 100) })}
+                  tick={(v) => f.number(Math.round(v * 100) / 100)}
                   fromZero={false}
                 />
               )}
@@ -207,9 +207,11 @@ function BestOfHour({ className, interval }: { className: string; interval: stri
   const { navigate } = useApp();
   const settings = useSettings();
   const [kind, setKind] = useState<Kind>("artists");
-  const data = useApi<{ hour: number; total: number; items: { itemId: string; total: number }[]; full_items: Record<string, Artist | Album | Track> }[]>(
+  const req = useApi<{ hour: number; total: number; items: { itemId: string; total: number }[]; full_items: Record<string, Artist | Album | Track> }[]>(
     `/spotify/top/hour-repartition/${kind}${interval}`,
-  ).data;
+  );
+  // The previous tab's items stay on hand while the next load: not this tab's kind.
+  const data = req.fresh ? req.data : undefined;
 
   const { hours, colorOf } = useMemo(() => {
     if (!data) return { hours: [], colorOf: () => "var(--text-faint)" };

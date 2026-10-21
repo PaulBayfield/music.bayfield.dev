@@ -21,6 +21,8 @@ const cache = new Map<string, unknown>();
 
 export interface Loaded<T> {
   data: T | undefined;
+  /** `data` answers the current path (false while it's still the previous path's, shown meanwhile). */
+  fresh: boolean;
   error: string | null;
   loading: boolean;
   reload: () => void;
@@ -29,6 +31,8 @@ export interface Loaded<T> {
 /** GETs `path` (null: nothing to load), keeping the previous data on screen while the next loads. */
 export function useApi<T>(path: string | null): Loaded<T> {
   const [data, setData] = useState<T | undefined>(() => (path ? (cache.get(path) as T | undefined) : undefined));
+  // Which path `data` came from.
+  const [dataPath, setDataPath] = useState<string | null>(() => (path && cache.has(path) ? path : null));
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(!!path);
   const [nonce, setNonce] = useState(0);
@@ -39,13 +43,17 @@ export function useApi<T>(path: string | null): Loaded<T> {
     if (!path) return;
     let live = true;
     const hit = cache.get(path) as T | undefined;
-    if (hit !== undefined) setData(hit);
+    if (hit !== undefined) {
+      setData(hit);
+      setDataPath(path);
+    }
     setLoading(true);
     api<T>(path).then(
       (value) => {
         cache.set(path, value);
         if (live) {
           setData(value);
+          setDataPath(path);
           setError(null);
           setLoading(false);
         }
@@ -63,7 +71,7 @@ export function useApi<T>(path: string | null): Loaded<T> {
   }, [path, nonce]);
 
   const reload = useCallback(() => setNonce((n) => n + 1), []);
-  return { data, error, loading, reload };
+  return { data, fresh: !!path && dataPath === path, error, loading, reload };
 }
 
 /** Drops cached responses (after a change that affects stats). */

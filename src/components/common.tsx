@@ -1,6 +1,6 @@
 // Small pieces shared across pages.
 
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { Component, createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useSettings } from "../lib/settings";
 import { Check, Copy } from "./icons";
 
@@ -167,4 +167,34 @@ export function CopyButton({ text, className = "icon-button small" }: { text: st
 
 export function Spinner() {
   return <span className="spinner" aria-hidden="true" />;
+}
+
+/**
+ * Catches a page that fails to render, so the rest of the app (sidebar, toolbar, tab bar) stays
+ * usable and the error shows instead of a blank screen. Give it a key that changes with the page.
+ */
+export class ErrorBoundary extends Component<{ children: ReactNode; message: string; retry: string }, { error: Error | null }> {
+  state = { error: null as Error | null };
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  componentDidCatch(error: Error) {
+    console.error(error);
+  }
+  render() {
+    if (!this.state.error) return this.props.children;
+    return (
+      <div className="content">
+        <div className="page">
+          <div className="card">
+            <p className="error-text">{this.props.message}</p>
+            <p className="small muted">{this.state.error.message}</p>
+            <button className="text-button" style={{ alignSelf: "flex-start" }} onClick={() => this.setState({ error: null })}>
+              {this.props.retry}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 }

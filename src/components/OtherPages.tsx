@@ -9,7 +9,7 @@ import { useSettings } from "../lib/settings";
 import { Check, ChevronDown, ListMusic } from "./icons";
 import { HistoryList } from "./HistoryList";
 import { useHistory } from "./HistoryPanel";
-import { ArtistNames, MediaList } from "./music";
+import { ArtistNames, MediaList, type MediaItem } from "./music";
 import { Toolbar } from "./Toolbar";
 
 // --- History ---
@@ -189,19 +189,24 @@ export function AffinityPage() {
                 </div>
               </div>
               <section className="card">
-                {!req.data ? (
+                {/* While another tab's rows are still on hand, wait: they don't have this tab's fields. */}
+                {!req.data || !req.fresh ? (
                   <div className="skeleton" style={{ height: 320 }} />
                 ) : (
                   <MediaList
                     limit={50}
-                    items={req.data.map((row) => {
+                    items={req.data.flatMap((row): MediaItem[] => {
                       const score = mode === "average" ? row.average_percents : row.minima;
                       const common = { value: score, main: f.percent(score), extra: share(row) };
                       if (tab === "artists")
-                        return { id: row.artist.id, kind: "artist" as const, title: row.artist.name, images: row.artist.images, ...common };
+                        return row.artist ? [{ id: row.artist.id, kind: "artist" as const, title: row.artist.name, images: row.artist.images, ...common }] : [];
                       if (tab === "albums")
-                        return { id: row.album!.id, kind: "album" as const, title: row.album!.name, subtitle: <ArtistNames artists={[row.artist]} />, images: row.album!.images, ...common };
-                      return { id: row.track!.id, kind: "track" as const, title: row.track!.name, subtitle: <ArtistNames artists={[row.artist]} />, images: row.album?.images, playable: true, ...common };
+                        return row.album
+                          ? [{ id: row.album.id, kind: "album" as const, title: row.album.name, subtitle: <ArtistNames artists={[row.artist]} />, images: row.album.images, ...common }]
+                          : [];
+                      return row.track
+                        ? [{ id: row.track.id, kind: "track" as const, title: row.track.name, subtitle: <ArtistNames artists={[row.artist]} />, images: row.album?.images, playable: true, ...common }]
+                        : [];
                     })}
                   />
                 )}
