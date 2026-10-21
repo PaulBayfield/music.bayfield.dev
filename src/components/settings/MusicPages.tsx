@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { api, type Artist, type ImportState } from "../../lib/api";
+import { api, query as qs, type Artist, type HistoryItem, type ImportState } from "../../lib/api";
 import { useApp } from "../../lib/app";
 import { invalidate, useApi } from "../../lib/hooks";
 import { useSettings } from "../../lib/settings";
@@ -58,7 +58,41 @@ export function SpotifyPage() {
           </a>
         </Row>
       </section>
+      <LastCollected />
     </>
+  );
+}
+
+/** The last plays collected from Spotify, newest first. */
+function LastCollected() {
+  const { t, f } = useSettings();
+  const { me } = useApp();
+  // Keyed on the last fetch, so "Fetch now" shows what it brought in.
+  const plays = useApi<HistoryItem[]>(`/spotify/gethistory${qs({ number: 10, offset: 0, at: me.lastTimestamp })}`);
+  return (
+    <section>
+      <h3>{t("lastCollected")}</h3>
+      {!plays.data ? (
+        <div className="skeleton" style={{ height: 200 }} />
+      ) : plays.data.length === 0 ? (
+        <p className="settings-empty">{t("noPlays")}</p>
+      ) : (
+        <div className="settings-list">
+          {plays.data.map((p) => (
+            <div key={p._id} className="settings-list-row">
+              <Cover images={p.track.full_album?.images} size={32} />
+              <div className="settings-list-main">
+                <span>{p.track.name}</span>
+                <span className="small muted">{p.track.full_artists.map((a) => a.name).join(", ")}</span>
+              </div>
+              <span className="small muted tabular" title={new Date(p.played_at).toLocaleString(f.locale)}>
+                {f.relative(p.played_at, t)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
 
