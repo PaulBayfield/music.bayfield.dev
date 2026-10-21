@@ -282,12 +282,21 @@ function Overview({ summary, previous }: { summary: Summary; previous: Summary |
   );
 }
 
-/** A few facts about the range: release years, features, variety, peak hour. */
+/** A few facts about the range (release years, features, variety, peak hour), and your streaks. */
+/** Runs of consecutive days with music (GET /app/streaks). */
+interface Streaks {
+  current: { start: string; end: string; days: number } | null;
+  longest: { start: string; end: string; days: number } | null;
+  today: string;
+}
+
 function Habits({ className, interval, summary }: { className: string; interval: { start: string; end: string }; summary: Summary }) {
   const { t, f } = useSettings();
   const years = useApi<{ totalYear: number; count: number }[]>(`/spotify/album_date_ratio${qs({ ...interval, timeSplit: "all" })}`).data;
   const feats = useApi<{ count: number; average: number; 1: number }[]>(`/spotify/feat_ratio${qs({ ...interval, timeSplit: "all" })}`).data;
   const hours = useApi<{ _id: number; count: number }[]>(`/spotify/time_per_hour_of_day${qs(interval)}`).data;
+  const streaks = useApi<Streaks>("/app/streaks").data;
+  const days = (n: number) => (n === 1 ? t("oneDay") : t("daysN", { n: f.number(n) }));
   const year = years?.[0];
   const feat = feats?.[0];
   const peak = hours?.length ? hours.reduce((a, b) => (b.count > a.count ? b : a)) : null;
@@ -305,11 +314,21 @@ function Habits({ className, interval, summary }: { className: string; interval:
       </div>
       <div className="habits">
         {row(t("averageReleaseYear"), year ? Math.round(year.totalYear) : "—", t("averageReleaseYearHint"))}
-        {row(t("withFeatures"), feat ? f.percent(1 - feat[1] / feat.count) : "—", feat ? t("artistsPerTrackN", { n: feat.average.toFixed(2) }) : undefined)}
+        {row(t("withFeatures"), feat ? f.percent(1 - feat[1] / feat.count) : "—", feat ? t("artistsPerTrackN", { n: f.number(Math.round(feat.average * 100) / 100) }) : undefined)}
         {row(t("variety"), summary.plays ? f.percent(summary.tracks / summary.plays) : "—", t("varietyHint"))}
         {row(t("peakHour"), peak ? f.hour(peak._id) : "—", t("peakHourHint"))}
         {row(t("averageTrack"), summary.plays ? mmss(summary.ms / summary.plays) : "—", t("averageTrackHint"))}
         {row(t("perArtist"), summary.artists ? f.number(Math.round(summary.plays / summary.artists)) : "—", t("perArtistHint"))}
+        {row(
+          t("currentStreak"),
+          streaks ? (streaks.current ? days(streaks.current.days) : t("noStreak")) : "—",
+          streaks?.current ? (streaks.current.end < streaks.today ? t("streakKeepGoing") : t("streakSince", { date: f.mediumDate(streaks.current.start) })) : t("streakHint"),
+        )}
+        {row(
+          t("longestStreak"),
+          streaks?.longest ? days(streaks.longest.days) : "—",
+          streaks?.longest ? `${f.mediumDate(streaks.longest.start)} – ${f.mediumDate(streaks.longest.end)}` : undefined,
+        )}
       </div>
     </section>
   );

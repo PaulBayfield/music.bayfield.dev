@@ -136,6 +136,26 @@ appRoutes.get("/variety", requireUserOrGuest, async (c) => {
   return c.json(await varietyPer(c.get("user"), start, end, s));
 });
 
+/**
+ * Listening streaks: runs of consecutive local days with at least one play. The current one still
+ * counts if it ended yesterday (today isn't over); the longest is all time.
+ */
+appRoutes.get("/streaks", requireUserOrGuest, async (c) => {
+  const user = c.get("user");
+  const tz = tzOf(user);
+  const runs = await sql<{ start: string; end: string; days: number }[]>`
+    WITH d AS (SELECT DISTINCT (played_at AT TIME ZONE ${tz})::date AS day FROM plays WHERE user_id = ${user.id} AND NOT blacklisted),
+    g AS (SELECT day, day - (row_number() OVER (ORDER BY day))::int AS grp FROM d),
+    r AS (SELECT min(day) AS first_day, max(day) AS last_day, count(*)::int AS days FROM g GROUP BY grp)
+    SELECT to_char(first_day, 'YYYY-MM-DD') AS start, to_char(last_day, 'YYYY-MM-DD') AS end, days FROM r
+    WHERE last_day >= ${today(tz)}::date - 1 OR days = (SELECT max(days) FROM r)`;
+  const yesterday = new Date(`${today(tz)}T00:00:00Z`);
+  yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+  const current = runs.find((r) => r.end >= yesterday.toISOString().slice(0, 10)) ?? null;
+  const longest = runs.reduce<(typeof runs)[number] | null>((best, r) => (!best || r.days > best.days || (r.days === best.days && r.end > best.end) ? r : best), null);
+  return c.json({ current, longest, today: today(tz) });
+});
+
 // --- Server ---
 
 appRoutes.get("/server", (c) =>
