@@ -11,6 +11,11 @@
   [![Node.js](https://img.shields.io/badge/Node.js-24-339933)](https://nodejs.org)
   [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1)](https://www.postgresql.org)
   [![Web](https://img.shields.io/badge/web-music.bayfield.dev-brightgreen)](https://music.bayfield.dev)
+
+  <br />
+  <br />
+
+  <img src="docs/screenshots/dashboard-light.png" alt="The dashboard in the light theme" width="900" />
 </div>
 
 
@@ -22,6 +27,7 @@ This is a personal project built for my own use, not a polished product: expect 
 ## 📋 • Table of Contents
 
 - [📖 • Overview](#--overview)
+- [🖼️ • Screenshots](#️--screenshots)
 - [🛠️ • Tech Stack](#️--tech-stack)
 - [🚀 • Getting Started](#--getting-started)
 - [🚚 • Migrating From YourSpotify](#--migrating-from-yourspotify)
@@ -38,12 +44,14 @@ This is a personal project built for my own use, not a polished product: expect 
 Music collects what you play on Spotify (every couple of minutes, from "recently played") and turns it into stats. It replaces my [YourSpotify](https://github.com/Yooooomi/your_spotify) instance: the same routes and answers, the same Spotify app and sign-in, with a UI built like my other apps ([Calendar](https://github.com/PaulBayfield/calendar.bayfield.dev), [Notes](https://github.com/PaulBayfield/notes.bayfield.dev), [DevTime](https://github.com/PaulBayfield/dev.bayfield.dev), [Apps](https://github.com/PaulBayfield/app.bayfield.dev)).
 
 - **Dashboard:** listening time vs the previous period, plays, different songs, daily average, best day; a stacked chart of listening time per day, week or month by artist; top songs, artists and albums; habits (release years, features, variety, peak hour); a yearly activity calendar and a weekday × hour grid. Ranges live in the URL.
+- **All stats:** every chart of YourSpotify's "All stats" page: best artists, listening over the day, artist listening distribution, the best artists, albums or songs of each hour, and curves of songs listened, time listened, different artists and songs, average release year and artists per song. Periods follow the range (hours, days, weeks or months).
 - **Tops:** songs, artists and albums of any range, ranked by plays or listening time, saved as Spotify playlists in a click.
 - **Artist, album and song pages:** plays, time, rank, best month, first and last listen, plays per month, most played songs and albums, when you listen.
 - **History** (also in the panel on the right), **longest listening sessions**, and **affinity**: what you and the other users all listen to.
 - **Import** your Spotify data export (extended streaming history or account data) to see everything since you joined Spotify.
 - **Public link** to share your stats read-only, **hidden artists**, **export** as CSV or JSON.
-- **Sign in with Spotify** (as on YourSpotify), devices you can sign out, an admin page for users and registrations.
+- **Sign in with Spotify** (as on YourSpotify), devices you can sign out, an admin page for users and registrations. **Settings → Spotify** shows the last fetch, any error, and the last songs collected.
+- **Mobile first:** on phones, a two-row toolbar (title, then the range) and a tab bar for the main pages; the sidebar and the recently played panel slide in.
 - **Themes:** System, Light, Dark, Rosé Pine, Rosé Pine Dawn. English or French. Update check in **Settings → About**.
 
 ### Compared to YourSpotify
@@ -51,6 +59,18 @@ Music collects what you play on Spotify (every couple of minutes, from "recently
 - PostgreSQL instead of MongoDB: one indexed query per stat instead of long aggregation pipelines. Every route answers in milliseconds on years of history.
 - Fewer Spotify calls: tracks from "recently played" are stored as they come (with their album); only new artists are fetched. Imports read tracks already known from the database.
 - The web app and the API in one container, server-side sessions you can revoke, a strict Content-Security-Policy.
+
+
+## 🖼️ • Screenshots
+
+| | |
+|---|---|
+| ![All stats in the dark theme](docs/screenshots/all-stats-dark.png) | ![An artist's page in Rosé Pine](docs/screenshots/artist-rosepine.png) |
+| **All stats** (Dark) | **An artist's page** (Rosé Pine) |
+| ![Top songs in Rosé Pine Dawn](docs/screenshots/top-songs-dawn.png) | <img src="docs/screenshots/mobile-dashboard.png" alt="The dashboard on a phone" width="220" /> <img src="docs/screenshots/mobile-artist.png" alt="An artist's page on a phone" width="220" /> |
+| **Top songs** (Rosé Pine Dawn) | **On a phone** |
+
+Screenshots use the made-up demo data from `npm --prefix server run seed`.
 
 
 ## 🛠️ • Tech Stack
@@ -163,7 +183,7 @@ The same keys as Calendar, Notes and DevTime.
 ```
 music.bayfield.dev/
 ├── src/                          # React app
-│   ├── components/               # Dashboard, tops, item pages, history, settings, charts…
+│   ├── components/               # Dashboard, all stats, tops, item pages, history, settings, charts…
 │   ├── lib/                      # API client, i18n, settings, router, ranges
 │   └── App.tsx
 ├── server/
@@ -179,6 +199,7 @@ music.bayfield.dev/
 │   │   ├── migrate-yourspotify.ts
 │   │   └── db.ts                 # Schema migrations
 │   └── scripts/                  # Dev database and demo data
+├── docs/screenshots/
 ├── Dockerfile
 └── docker-compose.yml
 ```
