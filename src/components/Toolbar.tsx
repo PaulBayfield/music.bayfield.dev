@@ -1,5 +1,6 @@
-// The top bar, laid out like Calendar's and Notes': title on the left; account, range and
-// navigation on the right; then the side panel toggle.
+// The top bar. On phones (the base layout) it has two rows: the title and account, then the page's
+// controls (range, ‹ ›…). From tablet width up it's one row, laid out like Calendar's and Notes':
+// title on the left; account, range and navigation on the right; then the side panel toggle.
 
 import { useRef, useState, type ReactNode } from "react";
 import { useApp } from "../lib/app";
@@ -20,34 +21,45 @@ interface Props {
 export function Toolbar({ title, loading, range, children }: Props) {
   const { t } = useSettings();
   const { sidebarVisible, toggleSidebar, panelVisible, togglePanel } = useApp();
+  const panelToggle = (className: string) => (
+    <button
+      className={`icon-button panel-toggle ${className}${panelVisible ? " active" : ""}`}
+      title={`${t("togglePanel")} (.)`}
+      aria-label={t("togglePanel")}
+      aria-pressed={panelVisible}
+      onClick={togglePanel}
+    >
+      <PanelRight />
+    </button>
+  );
+  // Only a range needs the second row on phones; a page's own buttons fit next to the title.
+  const controls = !!range;
   return (
-    <header className="toolbar">
-      {!sidebarVisible && (
-        <button className="icon-button" title={`${t("toggleSidebar")} (Ctrl+B)`} aria-label={t("toggleSidebar")} onClick={toggleSidebar}>
-          <PanelLeft />
-        </button>
-      )}
-      <h1 className="toolbar-title">{title}</h1>
-      {loading && <span className="spinner" aria-label={t("loading")} />}
-      <div className="toolbar-spacer" />
-      <AccountMenu />
-      {children}
-      {range && (
-        <>
-          <RangeMenu />
-          <TodayButton />
-          <PrevNext />
-        </>
-      )}
-      <button
-        className={`icon-button panel-toggle${panelVisible ? " active" : ""}`}
-        title={`${t("togglePanel")} (.)`}
-        aria-label={t("togglePanel")}
-        aria-pressed={panelVisible}
-        onClick={togglePanel}
-      >
-        <PanelRight />
-      </button>
+    <header className={`toolbar${controls ? " has-controls" : ""}`}>
+      <div className="toolbar-row">
+        {!sidebarVisible && (
+          <button className="icon-button" title={`${t("toggleSidebar")} (Ctrl+B)`} aria-label={t("toggleSidebar")} onClick={toggleSidebar}>
+            <PanelLeft />
+          </button>
+        )}
+        <h1 className="toolbar-title">{title}</h1>
+        {loading && <span className="spinner" aria-label={t("loading")} />}
+        <div className="toolbar-spacer" />
+        {!range && children}
+        <AccountMenu />
+        {panelToggle("phone-only")}
+      </div>
+      <div className="toolbar-controls">
+        {range && children}
+        {range && (
+          <>
+            <RangeMenu />
+            <TodayButton />
+            <PrevNext />
+          </>
+        )}
+        {panelToggle("wide-only")}
+      </div>
     </header>
   );
 }
@@ -100,7 +112,7 @@ function RangeMenu() {
   const days = rangeDays(query, me);
 
   return (
-    <div className="menu-anchor">
+    <div className="menu-anchor range-menu">
       <button ref={anchor} className={`text-button${open ? " active" : ""}`} onClick={() => setOpen(open ? null : "menu")} aria-haspopup="menu">
         {rangeLabel(query, t, f)} <ChevronDown size={14} />
       </button>
@@ -151,7 +163,7 @@ function TodayButton() {
   const { t } = useSettings();
   const { setQuery } = useApp();
   return (
-    <button className="text-button" title={`${t("today")} (T)`} onClick={() => setQuery({ range: "today", from: undefined, to: undefined })}>
+    <button className="text-button wide-only" title={`${t("today")} (T)`} onClick={() => setQuery({ range: "today", from: undefined, to: undefined })}>
       {t("today")}
     </button>
   );

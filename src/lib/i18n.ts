@@ -327,6 +327,8 @@ const en = {
   artistsN: "{n} artists",
   bestOfHour: "Best of each hour",
   hoverAnHour: "Point at an hour to see what you play then.",
+  tabHome: "Home",
+  tabStats: "Stats",
   // Common
   save: "Save",
   saved: "Saved",
@@ -662,6 +664,8 @@ const fr: Record<StringKey, string> = {
   artistsN: "{n} artistes",
   bestOfHour: "Le meilleur de chaque heure",
   hoverAnHour: "Pointez une heure pour voir ce que vous écoutez à ce moment-là.",
+  tabHome: "Accueil",
+  tabStats: "Stats",
   save: "Enregistrer",
   saved: "Enregistré",
   cancel: "Annuler",

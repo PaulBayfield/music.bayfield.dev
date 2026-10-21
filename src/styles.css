@@ -2728,24 +2728,6 @@ tr:hover .media-play,
   padding-right: 32px;
 }
 
-@media (max-width: 760px) {
-  .entity-head {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .entity-title {
-    font-size: 24px;
-  }
-  .habits {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .top-table td:nth-child(2) {
-    width: auto;
-  }
-  .hour-chart {
-    height: 110px;
-  }
-}
 .top-table td.num {
   white-space: nowrap;
 }
@@ -2842,4 +2824,299 @@ tr:hover .media-play,
 }
 .hour-stack-detail .tooltip-row:hover span:nth-child(2) {
   text-decoration: underline;
+}
+
+/* ---------- Mobile first ----------
+   The rules below are written for phones; (min-width: 761px) brings the desktop layout back. */
+
+@media (max-width: 760px) {
+  .wide-only {
+    display: none !important;
+  }
+}
+@media (min-width: 761px) {
+  .phone-only {
+    display: none !important;
+  }
+}
+
+/* Toolbar: title and account, then the page's controls on their own row. */
+.toolbar {
+  height: auto;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  padding: env(safe-area-inset-top) 0 0;
+}
+.toolbar-row {
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px 0 12px;
+  min-width: 0;
+}
+.toolbar-row > .icon-button:first-child {
+  margin-left: -6px;
+}
+.toolbar-controls {
+  display: none;
+}
+.toolbar.has-controls .toolbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px 8px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.toolbar-controls::-webkit-scrollbar {
+  display: none;
+}
+.toolbar-controls > * {
+  flex: none;
+}
+.toolbar-controls .range-menu {
+  flex: 1;
+  min-width: 0;
+}
+.toolbar-controls .range-menu > .text-button {
+  width: 100%;
+  justify-content: space-between;
+}
+@media (min-width: 761px) {
+  .toolbar {
+    height: var(--header-h);
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    padding: 0 12px 0 16px;
+  }
+  .toolbar-row,
+  .toolbar-controls,
+  .toolbar.has-controls .toolbar-controls {
+    display: contents;
+  }
+  .toolbar-controls .range-menu {
+    flex: none;
+  }
+  .toolbar-controls .range-menu > .text-button {
+    width: auto;
+  }
+}
+
+/* Tab bar: the main pages, at the bottom of the screen on phones. */
+.tab-bar {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border-top: 1px solid var(--border-strong);
+  background: var(--bg-sidebar);
+  padding-bottom: env(safe-area-inset-bottom);
+  user-select: none;
+  -webkit-user-select: none;
+}
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 56px;
+  font-size: 11px;
+  color: var(--text-muted);
+  -webkit-tap-highlight-color: transparent;
+}
+.tab span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tab.active {
+  color: var(--text);
+  font-weight: 600;
+}
+.tab.active svg {
+  color: var(--brand);
+}
+@media (min-width: 761px) {
+  .tab-bar {
+    display: none;
+  }
+}
+
+/* Key numbers: two columns on phones, one row from tablet width up. */
+.overview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 14px 16px;
+  padding: 0 0 4px;
+}
+.overview > :not(.stat) {
+  grid-column: 1 / -1;
+}
+.stat-value {
+  font-size: 18px;
+}
+.card {
+  padding: 14px;
+}
+@media (min-width: 761px) {
+  .overview {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 16px 40px;
+    padding: 4px 2px 8px;
+  }
+  .stat-value {
+    font-size: 20px;
+  }
+  .card {
+    padding: 16px 18px;
+  }
+}
+
+/* Artist, album and song headers */
+.entity-head {
+  align-items: center;
+  gap: 16px;
+  padding: 0;
+}
+.entity-head > .cover {
+  width: 88px !important;
+  height: 88px !important;
+}
+.entity-title {
+  font-size: 22px;
+}
+.entity-actions {
+  margin-top: 4px;
+}
+@media (min-width: 761px) {
+  .entity-head {
+    align-items: flex-end;
+    gap: 22px;
+    padding: 4px 0 8px;
+  }
+  .entity-head > .cover {
+    width: 132px !important;
+    height: 132px !important;
+  }
+  .entity-title {
+    font-size: 30px;
+  }
+  .entity-actions {
+    margin-top: 8px;
+  }
+}
+
+/* Lists and charts */
+.habits {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 12px;
+}
+.habit-value {
+  font-size: 16px;
+}
+.top-table td {
+  height: 52px;
+}
+.top-table td:nth-child(2) {
+  width: 100%;
+}
+.top-table .rank-col {
+  width: 28px;
+  padding: 0 2px 0 0;
+}
+.hour-chart {
+  height: 110px;
+  gap: 2px;
+}
+.picture-bars {
+  gap: 2px;
+}
+.picture-bar-value {
+  font-size: 10px;
+}
+.picture-bar-track {
+  height: 110px;
+}
+.session-head {
+  padding: 12px 14px;
+  gap: 10px;
+}
+.session-tracks {
+  padding: 0 14px 12px;
+}
+.media-row {
+  column-gap: 8px;
+}
+@media (min-width: 761px) {
+  .habits {
+    gap: 18px 16px;
+  }
+  .habit-value {
+    font-size: 18px;
+  }
+  .top-table td {
+    height: 56px;
+  }
+  .top-table td:nth-child(2) {
+    width: 60%;
+  }
+  .top-table .rank-col {
+    width: 36px;
+    padding: 0 4px 0 8px;
+  }
+  .hour-chart {
+    height: 140px;
+    gap: 3px;
+  }
+  .picture-bars {
+    gap: 6px;
+  }
+  .picture-bar-value {
+    font-size: 11px;
+  }
+  .picture-bar-track {
+    height: 140px;
+  }
+  .session-head {
+    padding: 14px 18px;
+    gap: 14px;
+  }
+  .session-tracks {
+    padding: 0 18px 12px 48px;
+  }
+  .media-row {
+    column-gap: 10px;
+  }
+}
+
+/* Card headings: on narrow cards the hint goes under the title rather than squeezing it. */
+.card-head {
+  flex-wrap: wrap;
+  row-gap: 2px;
+}
+.card-title {
+  flex: none;
+  max-width: 100%;
+}
+
+/* Settings fields take the whole width on phones. */
+@media (max-width: 760px) {
+  .setting-control .inline-form {
+    width: 100%;
+  }
+  .setting-control .inline-form .text-field {
+    flex: 1;
+    min-width: 0;
+  }
+  .setting-control select {
+    max-width: 100%;
+  }
 }

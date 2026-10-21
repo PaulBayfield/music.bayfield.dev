@@ -18,6 +18,7 @@ import { SettingsDialog } from "./components/SettingsDialog";
 import { HistoryPanel } from "./components/HistoryPanel";
 import { SearchDialog } from "./components/SearchDialog";
 import { PlaylistDialog } from "./components/PlaylistDialog";
+import { TabBar } from "./components/TabBar";
 
 export default function App() {
   return (
@@ -229,6 +230,7 @@ function Shell({ me, reloadMe, onSignedOut }: { me: Me; reloadMe: () => void; on
           ) : (
             <Dashboard />
           )}
+          <TabBar />
         </main>
         {panelVisible && (
           <>
