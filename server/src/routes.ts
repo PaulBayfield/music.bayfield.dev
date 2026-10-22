@@ -217,7 +217,9 @@ sp.post("/play", requireUser, async (c) => {
   const [track] = await getTracks([id]);
   if (!track) return c.body(null, 400);
   try {
-    await spotifyFor(c.get("user").id).play(track.uri);
+    // A missing or odd stored URI would make Spotify play nothing: rebuild it from the id.
+    const uri = /^spotify:track:[A-Za-z0-9]+$/.test(track.uri) ? track.uri : `spotify:track:${track.id}`;
+    await spotifyFor(c.get("user").id).play(uri);
     return c.body(null, 200);
   } catch (e) {
     const err = e as { body?: string };

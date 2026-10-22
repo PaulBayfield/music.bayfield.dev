@@ -65,6 +65,7 @@ export const spotify =
           "user-read-email",
           "user-read-recently-played",
           "user-modify-playback-state",
+          "user-read-playback-state",
           "playlist-modify-private",
           "playlist-modify-public",
         ].join(" "),

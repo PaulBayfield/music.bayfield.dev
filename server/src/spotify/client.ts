@@ -280,7 +280,23 @@ export function spotifyFor(userId: string) {
       const data = await maybe<{ tracks: { items: SpotifyTrack[] } }>(`/search?type=track&limit=10&q=${encodeURIComponent(q)}`, "normal");
       return data?.tracks.items[0] ?? null;
     },
-    play: (uri: string) => send<void>("PUT", "/me/player/play", { uris: [uri] }),
+    /**
+     * Plays on a named device: without one, Spotify can accept the request and play nothing.
+     * Takes the active device, else the first one available. Without the playback-state scope
+     * (accounts connected before it was added), plays without naming a device, as before.
+     */
+    async play(uri: string) {
+      let deviceId: string | undefined;
+      try {
+        const { devices } = await get<{ devices: { id: string | null; is_active: boolean; is_restricted: boolean }[] }>("/me/player/devices", "high");
+        const usable = devices.filter((d) => d.id && !d.is_restricted);
+        deviceId = (usable.find((d) => d.is_active) ?? usable[0])?.id ?? undefined;
+      } catch (e) {
+        if (!(e instanceof SpotifyError && (e.status === 401 || e.status === 403))) throw e;
+      }
+      const query = deviceId ? `?device_id=${encodeURIComponent(deviceId)}` : "";
+      await send<void>("PUT", `/me/player/play${query}`, { uris: [uri] });
+    },
     async playlists() {
       const items: SpotifyPlaylist[] = [];
       let url: string | null = "/me/playlists?limit=50";
