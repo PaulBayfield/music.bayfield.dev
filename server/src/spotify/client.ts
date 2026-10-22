@@ -272,6 +272,9 @@ export function spotifyFor(userId: string) {
       return items;
     },
     track: (id: string, priority: Priority = "normal") => maybe<SpotifyTrack>(`/tracks/${encodeURIComponent(id)}`, priority),
+    /** The version of a track playable in the user's country (Spotify relinks old or regional ids). */
+    playable: (id: string) =>
+      maybe<SpotifyTrack & { is_playable?: boolean; linked_from?: { id: string; uri: string } }>(`/tracks/${encodeURIComponent(id)}?market=from_token`, "high"),
     album: (id: string, priority: Priority = "normal") => maybe<SpotifyAlbum>(`/albums/${encodeURIComponent(id)}`, priority),
     artist: (id: string, priority: Priority = "normal") => maybe<SpotifyArtist>(`/artists/${encodeURIComponent(id)}`, priority),
     /** The best match for a track name and artist name (the old "privacy" exports have no ids). */
@@ -285,17 +288,35 @@ export function spotifyFor(userId: string) {
      * Takes the active device, else the first one available. Without the playback-state scope
      * (accounts connected before it was added), plays without naming a device, as before.
      */
-    async play(uri: string) {
-      let deviceId: string | undefined;
+    async play(uri: string, albumUri?: string): Promise<{ scope: boolean; device: string | null; playing: string | null }> {
+      type Device = { id: string | null; name: string; type: string; is_active: boolean; is_restricted: boolean };
+      let device: Device | undefined;
+      let scope = true;
       try {
-        const { devices } = await get<{ devices: { id: string | null; is_active: boolean; is_restricted: boolean }[] }>("/me/player/devices", "high");
+        const { devices } = await get<{ devices: Device[] }>("/me/player/devices", "high");
         const usable = devices.filter((d) => d.id && !d.is_restricted);
-        deviceId = (usable.find((d) => d.is_active) ?? usable[0])?.id ?? undefined;
+        device = usable.find((d) => d.is_active) ?? usable[0];
       } catch (e) {
         if (!(e instanceof SpotifyError && (e.status === 401 || e.status === 403))) throw e;
+        scope = false;
       }
-      const query = deviceId ? `?device_id=${encodeURIComponent(deviceId)}` : "";
-      await send<void>("PUT", `/me/player/play${query}`, { uris: [uri] });
+      // An idle device can accept a play request and stay empty: wake it up first.
+      if (device?.id && !device.is_active) {
+        await send<void>("PUT", "/me/player", { device_ids: [device.id], play: false });
+        await new Promise((r) => setTimeout(r, 500));
+      }
+      const query = device?.id ? `?device_id=${encodeURIComponent(device.id)}` : "";
+      // The album, starting at the track: some players ignore a bare `uris` list.
+      await send<void>("PUT", `/me/player/play${query}`, albumUri ? { context_uri: albumUri, offset: { uri } } : { uris: [uri] });
+      // What Spotify says is playing a moment later, to tell "accepted" from "actually playing".
+      let playing: string | null = null;
+      if (scope) {
+        await new Promise((r) => setTimeout(r, 1000));
+        const now = await get<{ item?: { uri?: string } | null; is_playing?: boolean } | undefined>("/me/player", "high").catch(() => undefined);
+        playing = now?.is_playing ? (now.item?.uri ?? null) : null;
+      }
+      console.log(`[play] ${uri} on ${device ? `${device.name} (${device.type})` : "no named device"}${scope ? "" : " (no playback-state scope)"}; now playing: ${playing ?? "nothing"}`);
+      return { scope, device: device ? device.name : null, playing };
     },
     async playlists() {
       const items: SpotifyPlaylist[] = [];

@@ -217,10 +217,15 @@ sp.post("/play", requireUser, async (c) => {
   const [track] = await getTracks([id]);
   if (!track) return c.body(null, 400);
   try {
-    // A missing or odd stored URI would make Spotify play nothing: rebuild it from the id.
-    const uri = /^spotify:track:[A-Za-z0-9]+$/.test(track.uri) ? track.uri : `spotify:track:${track.id}`;
-    await spotifyFor(c.get("user").id).play(uri);
-    return c.body(null, 200);
+    const client = spotifyFor(c.get("user").id);
+    // Spotify accepts an id that isn't playable in the user's country, then stops the player and
+    // plays nothing: play the version it relinks to for that country instead.
+    const local = await client.playable(track.id);
+    if (local?.is_playable === false) return c.json({ message: "This song isn't available on Spotify in your country." }, 400);
+    const uri = local?.uri ?? (/^spotify:track:[A-Za-z0-9]+$/.test(track.uri) ? track.uri : `spotify:track:${track.id}`);
+    const albumUri = local?.album?.uri ?? (typeof track.album === "string" && /^[A-Za-z0-9]+$/.test(track.album) ? `spotify:album:${track.album}` : undefined);
+    if (local?.linked_from) console.log(`[play] ${track.id} relinked to ${local.id}`);
+    return c.json({ uri, ...(await client.play(uri, albumUri)) });
   } catch (e) {
     const err = e as { body?: string };
     return c.json(JSON.parse(err.body || "{}").error ?? { message: "Spotify refused" }, 400);

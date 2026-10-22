@@ -122,8 +122,12 @@ function Shell({ me, reloadMe, onSignedOut }: { me: Me; reloadMe: () => void; on
     togglePanel,
     openSearch: () => setSearchOpen(true),
     play: (id) => {
-      api("/spotify/play", { body: { id } }).then(
-        () => toast(t("playing")),
+      api<{ uri: string; scope: boolean; device: string | null; playing: string | null }>("/spotify/play", { body: { id } }).then(
+        (r) => {
+          if (!r.scope) toast(t("playReconnect"), "error");
+          else if (r.playing !== r.uri) toast(t("playNotStarted", { name: r.device ?? "Spotify" }), "error");
+          else toast(r.device ? t("playingOn", { name: r.device }) : t("playing"));
+        },
         (e: Error) => toast(/NO_ACTIVE_DEVICE|404/i.test(e.message) ? t("noActiveDevice") : e.message, "error"),
       );
     },
