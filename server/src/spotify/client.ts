@@ -79,8 +79,33 @@ function enqueue(run: () => Promise<Response>, priority: Priority): Promise<Resp
   });
 }
 
+/**
+ * Node's fetch throws a bare "fetch failed" when the connection breaks, typically a kept-alive
+ * socket the other side closed while we were idle between polls. Requests that are safe to repeat
+ * get a second try on a fresh connection; the error message carries the underlying cause.
+ */
+async function fetchWithRetry(url: string, init: RequestInit): Promise<Response> {
+  const method = (init.method ?? "GET").toUpperCase();
+  const retryable = method === "GET" || method === "PUT" || url === ACCOUNTS;
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await fetch(url, { ...init, signal: AbortSignal.timeout(30_000) });
+    } catch (e) {
+      if (!(e instanceof TypeError) || !retryable || attempt >= 2) {
+        const cause = e instanceof Error && e.cause instanceof Error ? e.cause : undefined;
+        if (cause) {
+          const code = (cause as { code?: string }).code;
+          throw new Error(`${e instanceof Error ? e.message : e} (${code ? `${code}: ` : ""}${cause.message})`, { cause });
+        }
+        throw e;
+      }
+      await sleep(1000);
+    }
+  }
+}
+
 async function call<T>(url: string, init: RequestInit, priority: Priority): Promise<T> {
-  const res = await enqueue(() => fetch(url, { ...init, signal: AbortSignal.timeout(30_000) }), priority);
+  const res = await enqueue(() => fetchWithRetry(url, init), priority);
   const text = await res.text();
   if (!res.ok) throw new SpotifyError(res.status, text);
   return (text ? JSON.parse(text) : undefined) as T;
