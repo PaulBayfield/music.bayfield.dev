@@ -46,7 +46,9 @@ export function Toolbar({ title, loading, range, children }: Props) {
         {loading && <span className="spinner" aria-label={t("loading")} />}
         <div className="toolbar-spacer" />
         {!range && children}
-        <AccountMenu />
+        {/* The profile last, right before the side panel toggle (as in every bayfield.dev app): here
+            on phones, after the page's controls on wider screens. */}
+        <AccountMenu className="phone-only" />
         {panelToggle("phone-only")}
       </div>
       <div className="toolbar-controls">
@@ -58,19 +60,20 @@ export function Toolbar({ title, loading, range, children }: Props) {
             <PrevNext />
           </>
         )}
+        <AccountMenu className="wide-only" />
         {panelToggle("wide-only")}
       </div>
     </header>
   );
 }
 
-function AccountMenu() {
+function AccountMenu({ className = "" }: { className?: string }) {
   const { t } = useSettings();
   const { me, openSettings, signOut, guest } = useApp();
   const [open, setOpen] = useState(false);
   const anchor = useRef<HTMLButtonElement>(null);
   return (
-    <div className="menu-anchor">
+    <div className={`menu-anchor ${className}`}>
       <button ref={anchor} className="avatar" title={me.username} aria-haspopup="menu" onClick={() => setOpen(!open)}>
         {(me.username.trim()[0] ?? "?").toUpperCase()}
       </button>
