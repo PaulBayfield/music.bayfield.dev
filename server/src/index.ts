@@ -57,7 +57,8 @@ app.use(
       styleSrc: ["'self'", "'unsafe-inline'"],
       // Covers and artist pictures come from Spotify's CDN.
       imgSrc: ["'self'", "data:", "https://*.scdn.co", "https://*.spotifycdn.com"],
-      connectSrc: ["'self'"],
+      // prefs.bayfield.dev: the preferences shared with the other apps.
+      connectSrc: ["'self'", "https://prefs.bayfield.dev"],
       frameAncestors: ["'none'"],
       formAction: ["'self'"],
       baseUri: ["'self'"],

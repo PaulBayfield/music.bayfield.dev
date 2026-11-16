@@ -19,6 +19,7 @@ import { HistoryPanel } from "./components/HistoryPanel";
 import { SearchDialog } from "./components/SearchDialog";
 import { PlaylistDialog } from "./components/PlaylistDialog";
 import { TabBar } from "./components/TabBar";
+import { usePrefsSync } from "./lib/prefs";
 
 export default function App() {
   return (
@@ -68,6 +69,8 @@ function Root() {
 
 function Shell({ me, reloadMe, onSignedOut }: { me: Me; reloadMe: () => void; onSignedOut: () => void }) {
   const { t, settings, update, dark } = useSettings();
+  // Shared with the other bayfield.dev apps (prefs.bayfield.dev).
+  usePrefsSync({ theme: settings.theme, language: settings.language, timeFormat: settings.timeFormat, durationStyle: settings.durationStyle }, update);
   const router = useRouter();
   const toast = useToast();
   const mobile = useMediaQuery(MOBILE_QUERY);
