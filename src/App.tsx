@@ -70,7 +70,7 @@ function Root() {
 function Shell({ me, reloadMe, onSignedOut }: { me: Me; reloadMe: () => void; onSignedOut: () => void }) {
   const { t, settings, update, dark } = useSettings();
   // Shared with the other bayfield.dev apps (prefs.bayfield.dev).
-  usePrefsSync({ theme: settings.theme, language: settings.language, timeFormat: settings.timeFormat, durationStyle: settings.durationStyle }, update);
+  usePrefsSync({ theme: settings.theme, customThemes: settings.customThemes, customTheme: settings.customTheme, language: settings.language, timeFormat: settings.timeFormat, durationStyle: settings.durationStyle }, update);
   const router = useRouter();
   const toast = useToast();
   const mobile = useMediaQuery(MOBILE_QUERY);
